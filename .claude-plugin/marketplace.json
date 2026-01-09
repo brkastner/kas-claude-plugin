@@ -1,0 +1,15 @@
+{
+  "name": "kas-plugins",
+  "owner": {
+    "name": "Kas",
+    "url": "https://github.com/brkastner"
+  },
+  "plugins": [
+    {
+      "name": "kas",
+      "source": ".",
+      "description": "Workflow automation with beads, sessions, and code review",
+      "version": "1.0.0"
+    }
+  ]
+}

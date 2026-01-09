@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "bd daemon --status || bd daemon --start --auto-commit --auto-push"
+      }
+    ]
+  }
+}

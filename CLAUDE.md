@@ -71,10 +71,35 @@ The agent outputs `bd create` commands. Then call ExitPlanMode so user can revie
 
 When user approves (plan + findings + commands shown via ExitPlanMode):
 
-1. **Execute bd create commands** → create beads issues
-2. **Stop and provide next session prompt** → user will `/clear` to free context
+1. **Create worktree for plan:**
+   ```bash
+   REPO_ROOT=$(git rev-parse --show-toplevel)
+   # Derive prefix from plan title: Fix:/Bug: → fix/, Refactor: → refactor/, default → feat/
+   PREFIX="feat"  # or fix/refactor based on title
+   SLUG=$(echo "$PLAN_TITLE" | sed 's/^[^:]*: //' | tr '[:upper:]' '[:lower:]' | tr ' _' '-' | tr -cd 'a-z0-9-' | cut -c1-30 | sed 's/-$//')
+   BRANCH="$PREFIX/$SLUG"
+   WORKTREE_PATH="$REPO_ROOT/.worktrees/$PREFIX-$SLUG"
 
-This enables the next session to immediately start implementing from ready beads issues.
+   mkdir -p "$REPO_ROOT/.worktrees"
+   git worktree add -b "$BRANCH" "$WORKTREE_PATH" main
+   git -C "$WORKTREE_PATH" push -u origin "$BRANCH"
+   ```
+
+2. **Execute bd create commands** → create beads issues
+
+3. **Output:**
+   ```
+   Worktree ready: .worktrees/$PREFIX-$SLUG/
+   Branch: $BRANCH
+   Issues created: <count>
+
+   Switch to it:
+   cd $WORKTREE_PATH
+   ```
+
+4. **Stop** - user runs `cd` and `/clear` for fresh session
+
+This enables the next session to immediately start implementing in an isolated worktree.
 
 ## Working with Beads
 
@@ -142,24 +167,44 @@ git push -u origin feat/<id>-slug
 
 ## Git Worktree Workflow
 
-Each task can get an isolated worktree for parallel work capability.
+One worktree is created per plan after approval. All issues from that plan are worked in the same worktree.
+
+### Automatic Creation
+
+After plan approval, Claude:
+1. Creates branch + worktree from plan title
+2. Executes `bd create` commands for all issues
+3. Outputs `cd` command for user to switch
+
+### Conventions
+
+| Element | Format | Example |
+|---------|--------|---------|
+| Path | `.worktrees/<prefix>-<slug>/` | `.worktrees/feat-user-auth/` |
+| Branch | `<prefix>/<slug>` | `feat/user-auth` |
+
+**Prefix derivation:**
+- Plan title starts with "Fix:" or "Bug:" → `fix/`
+- Plan title starts with "Refactor:" → `refactor/`
+- Default → `feat/`
 
 ### Working in Worktree
 
+```bash
+cd <worktree-path>          # Switch to worktree
+/kas:next                   # Claim next issue (no new worktree created)
+# ... work ...
+/kas:done                   # Commit + push
+/kas:merge                  # Merge PR + auto-cleanup worktree
+```
+
 - Use absolute paths for all file operations
 - Main repo stays on `main` branch
-- Each worktree is isolated
-- Enables parallel work in separate terminals
-
-### Branch Naming
-
-- Features: `feat/<id>-<description>`
-- Bug fixes: `fix/<id>-<description>`
-- Refactors: `refactor/<id>-<description>`
+- `/kas:next` in worktree skips worktree creation (already in one)
 
 ### Commit Messages
 
-Include issue reference at the end of commit messages:
+Include issue reference:
 ```
 feat: implement user authentication
 
@@ -168,8 +213,10 @@ Refs: beads-abc123
 
 ### PR Workflow
 
+- PR created after first commit (via `/kas:done` then `gh pr create`)
 - Always work on feat/ or fix/ branches
 - Never commit directly to main unless explicitly requested
+- `/kas:merge` cleans up worktree after merging
 
 ## Code Review (pr-review-toolkit)
 

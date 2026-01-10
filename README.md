@@ -46,14 +46,16 @@ PLAN MODE
 ├─ Write implementation plan
 ├─ plan-reviewer (auto) → summarize → user approves
 ├─ task-splitter (auto) → outputs bd create commands
-└─ ExitPlanMode → user reviews commands
+└─ ExitPlanMode → user reviews plan + commands
        ↓
 USER APPROVAL
-├─ User executes bd create commands
-├─ User: /clear (free context)
-└─ [Next session: paste continuation prompt]
+├─ User approves plan
+├─ Agent executes bd create commands
+├─ Agent stops (provides next session prompt)
+└─ User: /clear (free context)
        ↓
 IMPLEMENTATION (one or more sessions)
+├─ [Paste continuation prompt]
 ├─ bd ready → pick issue → implement
 ├─ /kas:verify (parallel code + reality review)
 ├─ Quality gates (tests, linting)
@@ -136,9 +138,10 @@ Session 3: [Paste prompt] → Complete → /kas:done → /kas:merge
 
 1. **plan-reviewer** runs automatically after you write a plan
 2. Claude summarizes findings → you approve → **task-splitter** runs
-3. task-splitter outputs `bd create` commands (doesn't execute them)
-4. You review commands → approve → execute them yourself
-5. Implementation happens in fresh session after `/clear`
+3. task-splitter outputs `bd create` commands → ExitPlanMode
+4. You review plan + commands → approve
+5. Claude executes `bd create` commands → stops with continuation prompt
+6. You `/clear` → implementation happens in fresh session
 
 ## Critical Rules
 

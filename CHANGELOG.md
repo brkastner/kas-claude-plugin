@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-01-09
+
+### Fixed
+- **task-splitter auto-trigger**: Now chains from plan-reviewer output, ensuring it runs before ExitPlanMode
+- **plan-reviewer → task-splitter flow**: Added explicit "Next Step" in plan-reviewer output
+- **SessionStart hook error**: Made ensure-daemon.sh silent and always exit 0
+- **Post-approval workflow**: Stops after beads creation, provides next session prompt for context clearing
+
+### Changed
+- task-splitter now runs BEFORE ExitPlanMode (alongside plan-reviewer) instead of after approval
+- Implementation must start in fresh context after `/clear`
+
 ## [1.0.0] - 2025-01-09
 
 ### Added

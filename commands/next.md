@@ -43,25 +43,10 @@ Let user pick which one to work on.
 
 ## Worktree Handling
 
-Detect worktree context before claiming:
+Detect worktree via `git rev-parse --git-common-dir` vs `--show-toplevel`.
 
-```bash
-COMMON_DIR=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
-TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null)
-
-# If COMMON_DIR != TOPLEVEL/.git, we're in a worktree
-if [[ "$COMMON_DIR" != "$TOPLEVEL/.git" ]]; then
-  IN_WORKTREE=true
-fi
-```
-
-**If in worktree:**
-- Skip worktree creation (already in one)
-- Claim issue only: `bd update <id> --claim`
-- Output: "Claimed `<id>`. Already in worktree, ready to work."
-
-**If in main repo:**
-- Normal behavior (worktrees created at plan approval, not here)
+- **In worktree**: Claim only, no new worktree. Output: "Claimed `<id>`. Ready to work."
+- **In main repo**: Normal behavior (worktrees created at plan approval).
 
 ## Rules
 

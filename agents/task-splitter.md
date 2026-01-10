@@ -1,32 +1,41 @@
 ---
 name: task-splitter
 description: |
-  Use this agent when you need to decompose an approved implementation plan into optimally-scoped beads issues. Each issue will be completable in a single focused session (~40% context window).
+  Use this agent when you need to decompose an approved implementation plan into optimally-scoped beads issues. Each issue will be completable in a single focused session (~40% context window). This agent should be invoked PROACTIVELY after a plan is approved - run task-splitter AFTER ExitPlanMode when the user approves the plan.
 
   <example>
-  Context: User approved a plan and wants tasks created.
+  Context: User just approved the plan via ExitPlanMode.
+  user: [Approves the plan]
+  assistant: "Great, the plan is approved. Let me run the task-splitter agent to create beads issues for implementation."
+  <commentary>
+  Plan was just approved. PROACTIVELY invoke task-splitter to decompose the plan into beads issues. This ensures work is tracked automatically after plan approval.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Assistant just exited plan mode and user confirmed the plan.
+  user: "Yes, proceed with the plan"
+  assistant: "I'll run the task-splitter agent to create implementation tasks from the approved plan."
+  <commentary>
+  User confirmed plan approval. MUST invoke task-splitter proactively. Never start implementation without creating beads issues first.
+  </commentary>
+  </example>
+
+  <example>
+  Context: User approved plan but explicitly does not want task splitting.
+  user: "Approve the plan, but don't create beads issues - I'll track this myself"
+  assistant: "Understood, plan approved. I'll skip task splitting as requested."
+  <commentary>
+  User explicitly opted out of task splitting. Skip task-splitter invocation. Only skip when user explicitly requests it.
+  </commentary>
+  </example>
+
+  <example>
+  Context: User explicitly requests plan decomposition.
   user: "Split this approved plan into beads issues"
   assistant: "I'll use the task-splitter agent to create work items."
   <commentary>
-  Plan decomposition request. Trigger task-splitter agent.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Plan is approved, need implementation tasks.
-  user: "Create implementation tasks from this plan"
-  assistant: "Let me run the task-splitter agent to decompose the plan into beads issues."
-  <commentary>
-  Task creation request after plan approval. Invoke task-splitter.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants actionable work items from a plan.
-  user: "Break down the plan into actionable work items"
-  assistant: "I'll use the task-splitter agent to create granular beads issues."
-  <commentary>
-  Decomposition request. Trigger task-splitter agent.
+  Explicit decomposition request. Trigger task-splitter agent.
   </commentary>
   </example>
 model: opus

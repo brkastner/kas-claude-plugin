@@ -12,10 +12,31 @@ Workflow automation with beads task tracking, session management, and code revie
 
 ## Prerequisites
 
-Install these plugins first:
-- `commit-commands` - Git commit automation
-- `pr-review-toolkit` - Code review agents
-- `context7` - Library documentation lookups
+### Required Tools
+
+**Beads** - Local-first issue tracking (required for task management):
+```bash
+# Install via cargo
+cargo install beads
+
+# Or build from source
+git clone https://github.com/brkastner/beads.git
+cd beads && cargo install --path .
+```
+
+**GitHub CLI** - For PR workflows:
+```bash
+# macOS
+brew install gh
+
+# Linux
+sudo apt install gh  # or equivalent for your distro
+```
+
+### Required Plugins
+
+Install these Claude Code plugins:
+- `pr-review-toolkit` - Code review agents (silent-failure-hunter, type-design-analyzer, etc.)
 
 ## Installation
 

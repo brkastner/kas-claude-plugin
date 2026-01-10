@@ -1,41 +1,32 @@
 ---
 name: task-splitter
 description: |
-  Use this agent when you need to decompose an approved implementation plan into optimally-scoped beads issues. Each issue will be completable in a single focused session (~40% context window). This agent should be invoked PROACTIVELY after a plan is approved - run task-splitter AFTER ExitPlanMode when the user approves the plan.
+  MANDATORY: Invoke this agent immediately after ANY plan approval. Never start implementation without first running task-splitter to create beads issues. This is a blocking requirement - implementation cannot proceed until issues are created.
 
   <example>
-  Context: User just approved the plan via ExitPlanMode.
-  user: [Approves the plan]
-  assistant: "Great, the plan is approved. Let me run the task-splitter agent to create beads issues for implementation."
+  Context: User just approved the plan. Assistant's next action MUST be task-splitter.
+  user: "Looks good, let's do it"
+  assistant: [Invokes task-splitter agent via Task tool]
   <commentary>
-  Plan was just approved. PROACTIVELY invoke task-splitter to decompose the plan into beads issues. This ensures work is tracked automatically after plan approval.
+  Plan approved. IMMEDIATELY invoke task-splitter as first action. Do NOT write any code or start implementation until task-splitter completes and issues are created.
   </commentary>
   </example>
 
   <example>
-  Context: Assistant just exited plan mode and user confirmed the plan.
-  user: "Yes, proceed with the plan"
-  assistant: "I'll run the task-splitter agent to create implementation tasks from the approved plan."
+  Context: ExitPlanMode completed and user confirmed approval.
+  user: "Yes, proceed"
+  assistant: [Invokes task-splitter agent via Task tool]
   <commentary>
-  User confirmed plan approval. MUST invoke task-splitter proactively. Never start implementation without creating beads issues first.
+  BLOCKING: Must run task-splitter before ANY implementation work. This is not optional - it's the required first step after plan approval.
   </commentary>
   </example>
 
   <example>
-  Context: User approved plan but explicitly does not want task splitting.
-  user: "Approve the plan, but don't create beads issues - I'll track this myself"
-  assistant: "Understood, plan approved. I'll skip task splitting as requested."
+  Context: User approved plan but explicitly opts out of task splitting.
+  user: "Approve, but skip beads - I'll track manually"
+  assistant: "Understood, skipping task-splitter as requested."
   <commentary>
-  User explicitly opted out of task splitting. Skip task-splitter invocation. Only skip when user explicitly requests it.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User explicitly requests plan decomposition.
-  user: "Split this approved plan into beads issues"
-  assistant: "I'll use the task-splitter agent to create work items."
-  <commentary>
-  Explicit decomposition request. Trigger task-splitter agent.
+  ONLY skip when user EXPLICITLY requests no beads/task-splitting. Phrases like "let's start" or "proceed" do NOT opt out.
   </commentary>
   </example>
 model: opus

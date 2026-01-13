@@ -270,7 +270,44 @@ fi
 
 ### 5. Check Hooks Configuration
 
-*Implemented in kas-plugins-ui3*
+Hook issues are **WARNINGS** - daemon won't auto-start but can be started manually.
+
+```bash
+HOOKS_FILE="$REPO_ROOT/.claude/hooks.json"
+
+if [[ ! -f "$HOOKS_FILE" ]]; then
+  echo "[WARN] No hooks.json found at $HOOKS_FILE"
+  echo "  Daemon won't auto-start on session begin"
+  echo "  Create hooks.json? (prompt user)"
+  # If user confirms, create minimal hooks.json with SessionStart hook
+  # WARN - continue but note the issue
+else
+  # Check for SessionStart hook that ensures daemon
+  if grep -q "SessionStart" "$HOOKS_FILE" && grep -q "ensure-daemon\|daemon" "$HOOKS_FILE"; then
+    echo "[PASS] SessionStart hook configured for daemon"
+  else
+    echo "[WARN] hooks.json missing SessionStart hook for daemon"
+    echo "  Daemon won't auto-start on session begin"
+    echo "  Add hook? (prompt user)"
+    # If user confirms, add the SessionStart hook
+    # WARN - continue but note the issue
+  fi
+fi
+
+# Example hooks.json structure to offer:
+# {
+#   "hooks": {
+#     "SessionStart": [{
+#       "matcher": "*",
+#       "hooks": [{
+#         "type": "command",
+#         "command": "bd daemon --start --auto-commit --auto-push 2>/dev/null || true",
+#         "timeout": 10
+#       }]
+#     }]
+#   }
+# }
+```
 
 ### 6. Show Summary
 

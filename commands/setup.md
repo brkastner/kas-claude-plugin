@@ -268,43 +268,38 @@ else
 fi
 ```
 
-### 5. Check Hooks Configuration
+### 5. Check Plugin Enablement
 
-Hook issues are **WARNINGS** - daemon won't auto-start but can be started manually.
+Plugin issues are **WARNINGS** - kas workflow works but hooks won't auto-run.
 
 ```bash
-HOOKS_FILE="$REPO_ROOT/.claude/hooks.json"
+SETTINGS_FILE="$REPO_ROOT/.claude/settings.json"
 
-if [[ ! -f "$HOOKS_FILE" ]]; then
-  echo "[WARN] No hooks.json found at $HOOKS_FILE"
-  echo "  Daemon won't auto-start on session begin"
-  echo "  Create hooks.json? (prompt user)"
-  # If user confirms, create minimal hooks.json with SessionStart hook
+if [[ ! -f "$SETTINGS_FILE" ]]; then
+  echo "[WARN] No .claude/settings.json found"
+  echo "  kas plugin not enabled - hooks won't auto-run"
+  echo "  Create settings.json and enable plugin? (prompt user)"
+  # If user confirms, create:
+  # mkdir -p "$REPO_ROOT/.claude"
+  # echo '{"enabledPlugins":{"kas@kas-claude-plugin":true}}' > "$SETTINGS_FILE"
   # WARN - continue but note the issue
 else
-  # Check for SessionStart hook that ensures daemon
-  if grep -q "SessionStart" "$HOOKS_FILE" && grep -q "ensure-daemon\|daemon" "$HOOKS_FILE"; then
-    echo "[PASS] SessionStart hook configured for daemon"
+  # Check if kas plugin is enabled
+  if grep -q '"kas@kas-claude-plugin"' "$SETTINGS_FILE" && grep -q 'true' "$SETTINGS_FILE"; then
+    echo "[PASS] kas plugin enabled"
   else
-    echo "[WARN] hooks.json missing SessionStart hook for daemon"
-    echo "  Daemon won't auto-start on session begin"
-    echo "  Add hook? (prompt user)"
-    # If user confirms, add the SessionStart hook
+    echo "[WARN] kas plugin not enabled in settings.json"
+    echo "  Hooks won't auto-run on session start"
+    echo "  Enable plugin? (prompt user)"
+    # If user confirms, add to enabledPlugins
     # WARN - continue but note the issue
   fi
 fi
 
-# Example hooks.json structure to offer:
+# To enable kas plugin, settings.json needs:
 # {
-#   "hooks": {
-#     "SessionStart": [{
-#       "matcher": "*",
-#       "hooks": [{
-#         "type": "command",
-#         "command": "bd daemon --start --auto-commit --auto-push 2>/dev/null || true",
-#         "timeout": 10
-#       }]
-#     }]
+#   "enabledPlugins": {
+#     "kas@kas-claude-plugin": true
 #   }
 # }
 ```
@@ -324,7 +319,7 @@ Aggregate results and provide final verdict.
 | Beads directory | [PASS/FAIL] |
 | Remote access | [PASS/FAIL] |
 | Daemon | [PASS/WARN] |
-| Hooks | [PASS/WARN] |
+| Plugin enabled | [PASS/WARN] |
 ```
 
 **Verdict logic:**
@@ -341,7 +336,7 @@ Aggregate results and provide final verdict.
 | Beads directory | BLOCKER | Core data storage |
 | Remote access | BLOCKER | Cannot sync without push access |
 | Daemon | WARN | Can be started manually |
-| Hooks | WARN | Daemon can be started manually |
+| Plugin enabled | WARN | Hooks won't auto-run but workflow works |
 
 ## Rules
 

@@ -1,5 +1,26 @@
 # kas Plugin - Claude Code Workflow Instructions
 
+## Plugin Development Context
+
+**This is a Claude Code plugin** (`kas-claude-plugin`), not a regular project.
+
+**Plugin structure:**
+- `.claude-plugin/plugin.json` - plugin metadata
+- `hooks/hooks.json` - hooks **provided by the plugin** to target projects
+- `commands/*.md` - slash commands provided by the plugin
+- `agents/*.md` - agents provided by the plugin
+- `CLAUDE.md` - instructions active when plugin is enabled
+
+**How plugins work:**
+- Target projects enable plugins via `.claude/settings.json`
+- Once enabled, plugin's hooks activate automatically
+- Don't confuse plugin code with target project configuration
+
+**When implementing /kas:setup:**
+- It sets up a **target project** to use this plugin
+- Check if plugin is enabled in target's `.claude/settings.json`
+- Don't look for hooks.json in target project - hooks come from plugin
+
 ## Context7 Documentation Lookups
 
 **Always use Context7** when looking up library/framework documentation:

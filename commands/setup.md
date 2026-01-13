@@ -311,7 +311,37 @@ fi
 
 ### 6. Show Summary
 
-*Implemented in kas-plugins-l7s*
+Aggregate results and provide final verdict.
+
+```
+## Setup Summary
+
+| Check | Status |
+|-------|--------|
+| bd CLI | [PASS/FAIL] |
+| gh CLI | [PASS/FAIL] |
+| git config | [PASS/FAIL] |
+| Beads directory | [PASS/FAIL] |
+| Remote access | [PASS/FAIL] |
+| Daemon | [PASS/WARN] |
+| Hooks | [PASS/WARN] |
+```
+
+**Verdict logic:**
+
+- Any `[FAIL]` → "Setup incomplete. Fix the issues above before using kas workflow."
+- Only `[WARN]` → "Ready for kas workflow (with warnings). Optional fixes noted above."
+- All `[PASS]` → "Ready for kas workflow."
+
+**Severity mapping:**
+
+| Check | Severity | Reason |
+|-------|----------|--------|
+| Prerequisites (bd, gh, git) | BLOCKER | Cannot function without these |
+| Beads directory | BLOCKER | Core data storage |
+| Remote access | BLOCKER | Cannot sync without push access |
+| Daemon | WARN | Can be started manually |
+| Hooks | WARN | Daemon can be started manually |
 
 ## Rules
 

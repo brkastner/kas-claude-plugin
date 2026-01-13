@@ -100,6 +100,7 @@ Session 3: [Paste prompt] → Complete → /kas:done → /kas:merge
 
 | Command | Description |
 |---------|-------------|
+| `/kas:setup` | Prepare project: validate prerequisites, init beads, configure daemon |
 | `/kas:done` | Complete session: commit, push, close issues, verify daemon |
 | `/kas:save` | Snapshot session: push work, generate continuation prompt |
 | `/kas:next` | Find next available beads issue to work on |

@@ -221,7 +221,52 @@ fi
 
 ### 4. Check Remote and Sync Branch
 
-*Implemented in kas-plugins-rx8*
+Remote issues are **BLOCKERS** - beads sync requires push access.
+
+```bash
+# Check origin remote exists
+ORIGIN_URL=$(git remote get-url origin 2>/dev/null)
+if [[ -z "$ORIGIN_URL" ]]; then
+  echo "[FAIL] No 'origin' remote configured"
+  echo "  Run: git remote add origin <your-repo-url>"
+  # BLOCKER
+fi
+
+# Test push access with dry-run
+if ! git push --dry-run origin HEAD 2>/dev/null; then
+  echo "[FAIL] Cannot push to origin"
+  echo "  Check SSH keys or HTTPS credentials"
+  echo "  Test: git push --dry-run origin HEAD"
+  # BLOCKER
+fi
+
+# Check if util/beads-sync branch exists on remote
+SYNC_BRANCH="util/beads-sync"
+if git ls-remote --heads origin "$SYNC_BRANCH" 2>/dev/null | grep -q "$SYNC_BRANCH"; then
+  echo "[PASS] Remote sync branch exists: $SYNC_BRANCH"
+else
+  echo "[INFO] Creating remote sync branch: $SYNC_BRANCH"
+
+  # Create orphan branch for beads sync
+  CURRENT_BRANCH=$(git branch --show-current)
+
+  # Create and push the branch
+  if git push origin HEAD:refs/heads/$SYNC_BRANCH 2>/dev/null; then
+    # Verify it was created
+    if git ls-remote --heads origin "$SYNC_BRANCH" 2>/dev/null | grep -q "$SYNC_BRANCH"; then
+      echo "[PASS] Created remote sync branch: $SYNC_BRANCH"
+    else
+      echo "[FAIL] Branch creation could not be verified"
+      echo "  Manual fix: git push origin HEAD:refs/heads/$SYNC_BRANCH"
+      # BLOCKER
+    fi
+  else
+    echo "[FAIL] Could not create sync branch"
+    echo "  Manual fix: git push origin HEAD:refs/heads/$SYNC_BRANCH"
+    # BLOCKER
+  fi
+fi
+```
 
 ### 5. Check Hooks Configuration
 

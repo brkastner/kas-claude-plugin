@@ -12,6 +12,13 @@
       "version": "1.8.0",
       "source": "./plugins/kas",
       "category": "productivity"
+    },
+    {
+      "name": "clickup-tasks",
+      "description": "ClickUp task management with kas workflow integration",
+      "version": "1.0.0",
+      "source": "./plugins/clickup-tasks",
+      "category": "integrations"
     }
   ]
 }

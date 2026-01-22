@@ -1,7 +1,7 @@
 {
   "name": "task",
   "description": "ClickUp task management with kas workflow integration",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "Kas",
     "url": "https://github.com/brkastner"

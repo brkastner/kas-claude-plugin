@@ -6,20 +6,18 @@
 
 **Plugin structure:**
 - `.claude-plugin/plugin.json` - plugin metadata
-- `hooks/hooks.json` - hooks **provided by the plugin** to target projects
 - `commands/*.md` - slash commands provided by the plugin
 - `agents/*.md` - agents provided by the plugin
 - `CLAUDE.md` - instructions active when plugin is enabled
 
 **How plugins work:**
 - Target projects enable plugins via `.claude/settings.json`
-- Once enabled, plugin's hooks activate automatically
+- Once enabled, plugin's commands and agents become available
 - Don't confuse plugin code with target project configuration
 
 **When implementing /kas:setup:**
 - It sets up a **target project** to use this plugin
 - Check if plugin is enabled in target's `.claude/settings.json`
-- Don't look for hooks.json in target project - hooks come from plugin
 
 ## Context7 Documentation Lookups
 
@@ -38,15 +36,13 @@
 ## Complete Workflow
 
 ```
-/kas:start (enter plan mode with beads context)
+/kas:start (enter plan mode)
     ↓
 Plan Mode (structured exploration + design)
     ↓
-Plan Reviewer → Task Splitter → ExitPlanMode
+Plan Reviewer → ExitPlanMode
     ↓
-Session Start: "start on beads-xxx" → Create branch
-    ↓
-bd ready → Pick subtask → Implement
+Session Start: Create branch → Implement
     ↓
 Review (pr-review-toolkit) → Quality Gates
     ↓
@@ -61,18 +57,17 @@ Session boundary:
 **Key:** `/kas:done`, `/kas:save`, `/kas:merge`, `/clear` are USER shortcuts, not Claude automation
 
 **User Checkpoints (mandatory):**
-1. After plan-reviewer + task-splitter: user approves plan, findings, and bd commands together
+1. After plan-reviewer: user approves plan and findings together
 2. After code review agents: summarize findings, get approval before fixes
 3. After code-simplifier: summarize suggestions, get approval before applying
 
 ## Plan Mode
 
-> Use `/kas:start` to enter plan mode with proper workflow. This ensures beads context is loaded and review agents run automatically.
+> Use `/kas:start` to enter plan mode with proper workflow. This ensures review agents run automatically.
 
 - At the end of each plan, give me a list of unresolved questions to answer, if any. Make the questions extremely concise. Sacrifice grammar for the sake of concision.
 - Every plan should include high level requirements, architecture decisions, data models, and a robust testing strategy
 - Do not save tests for the end - testing should be alongside the relevant requirements
-- The first thing you should do after I accept a plan is run the **Task Splitter** sub-agent to create beads issues
 
 ### Plan Reviewer Agent
 
@@ -81,83 +76,25 @@ After creating a plan, run the plan-reviewer agent automatically:
 "Review this plan for security gaps and design issues"
 ```
 
-The agent returns structured feedback. Then immediately run task-splitter.
-
-### Task Splitter Agent
-
-After plan-reviewer completes, run task-splitter automatically:
-```
-"Split this plan into beads issues"
-```
-
-The agent outputs `bd create` commands. Then call ExitPlanMode so user can review everything together (plan + findings + commands).
+The agent returns structured feedback. Then call ExitPlanMode so user can review everything together (plan + findings).
 
 ### After Plan Approval
 
-When user approves (plan + findings + commands shown via ExitPlanMode):
+When user approves (plan + findings shown via ExitPlanMode):
 
 1. **Create worktree** - derive branch from plan title (prefix: `feat/`|`fix/`|`refactor/`, slug: sanitized title, max 30 chars)
-2. **Execute bd create commands** → create beads issues
-3. **Output cd command** for user to switch to worktree
-4. **Stop** - user runs `cd` and `/clear` for fresh session
-
-## Working with Beads
-
-Beads is used for **all granular work tracking**:
-- **Exploratory work**: Research, codebase analysis, architecture decisions (`Explore: ...`)
-- **Planning**: Design decisions, spike investigations (`ADR: ...`)
-- **Implementation**: Code changes, tests, refactoring subtasks (`Implement: ...`)
-- **Tech debt**: Internal improvements, cleanup, optimizations (`Fix: ...`)
-- **Documentation**: Patterns, setup guides, API docs (`Document: ...`)
-
-### Key Commands
-
-```bash
-bd ready --unassigned # Find unclaimed work (unblocked, not claimed)
-bd show <id>          # View issue details
-bd update <id> --claim  # Atomically claim (sets assignee + in_progress)
-bd close <id>         # Complete work
-bd daemon --status    # Check daemon is running (auto-syncs to util/beads-sync)
-```
-
-### Starting Work on an Issue
-
-Before implementing, check for pattern corrections:
-1. **Identify sibling issues** - Issues from the same plan/epic (check description for shared reference)
-2. **Check closed siblings** - Run `bd list --status=closed` and look for related issues
-3. **Read close reasons** - Close reasons often contain pattern corrections discovered during implementation
-4. **Apply learnings** - If a sibling was corrected, apply that to your issue
-
-This prevents repeating mistakes that were already caught and corrected.
-
-### Issue Descriptions
-
-Treat beads issue descriptions like GitHub issues. Include:
-- Context needed for another developer to pick up this task
-- Code references with file and line numbers
-- Reasoning and architectural decisions
-- Links to related plan files or issues
-
-### Finding Work During Implementation
-
-1. Use `bd ready --unassigned` to find next subtask
-2. `bd update <id> --claim` to claim it
-3. Close subtasks as you complete them
-4. When all beads issues are closed, automatically start the code review workflow
-
-**Rules:**
-- Never ask about already-claimed issues. Only show unassigned work when finding next tasks.
+2. **Output cd command** for user to switch to worktree
+3. **Stop** - user runs `cd` and `/clear` for fresh session
 
 ## Git Worktree Workflow
 
-One worktree is created per plan after approval. All issues from that plan are worked in the same worktree.
+One worktree is created per plan after approval.
 
 ### Automatic Creation
 
 After plan approval, Claude:
 1. Creates branch + worktree from plan title
-2. Executes `bd create` commands for all issues
-3. Outputs `cd` command for user to switch
+2. Outputs `cd` command for user to switch
 
 ### Conventions
 
@@ -169,7 +106,6 @@ After plan approval, Claude:
 
 ```bash
 cd <worktree-path>          # Switch to worktree
-/kas:next                   # Claim next issue (no new worktree created)
 # ... work ...
 /kas:done                   # Commit + push
 /kas:merge                  # Merge PR + auto-cleanup worktree
@@ -177,16 +113,6 @@ cd <worktree-path>          # Switch to worktree
 
 - Use absolute paths for all file operations
 - Main repo stays on `main` branch
-- `/kas:next` in worktree skips worktree creation (already in one)
-
-### Commit Messages
-
-Include issue reference:
-```
-feat: implement user authentication
-
-Refs: beads-abc123
-```
 
 ### PR Workflow
 
@@ -268,14 +194,12 @@ cargo clippy
 
 **CRITICAL: Work is NOT complete until `git push` succeeds.**
 
-1. File beads issues for remaining work (if any)
-2. Run quality gates (if code changed)
-3. Close completed beads issues
-4. Push: `git pull --rebase && git push`
-5. Add PR comment (if PR exists)
-6. Provide next session prompt
+1. Run quality gates (if code changed)
+2. Push: `git pull --rebase && git push`
+3. Add PR comment (if PR exists)
+4. Provide next session prompt
 
-**Output:** Summary of completed work, follow-up issues, and confirmation all changes pushed.
+**Output:** Summary of completed work and confirmation all changes pushed.
 
 ## Session Management
 
@@ -297,11 +221,6 @@ User responds to Claude's approval prompts with shortcuts (e.g., `/kas:done`) in
 3. Landing the plane (push to remote)
 4. Outputting next session prompt to copy
 
-**Scenario:**
-- Beads issues remain open
-- Feature partially complete
-- Need to free context and continue later
-
 ### /clear - Context Reset
 
 **When to use:** After `/kas:save` to free context window
@@ -309,18 +228,6 @@ User responds to Claude's approval prompts with shortcuts (e.g., `/kas:done`) in
 **User types:** `/clear`
 
 **Effect:** Compacts conversation history, maintains critical context, enables fresh start
-
-### /kas:next - Find Next Work
-
-**When to use:** Find available beads issues to work on
-
-**User types:** `/kas:next`
-
-**Claude responds by:**
-1. Running `bd ready --unassigned`
-2. Showing issues in priority order
-3. If single issue: asking "Claim it?"
-4. If multiple: letting user pick
 
 ### Multi-Session Workflow
 
@@ -359,6 +266,7 @@ Session 3: User: [Paste prompt] → Complete → User: "/kas:done" → User: "/k
 ## Prerequisites
 
 This plugin works best with these other plugins installed:
+- `superpowers` - Brainstorming, subagent spawning, initial reviews (official marketplace)
 - `commit-commands` - Git commit automation
 - `pr-review-toolkit` - Code review agents
 - `context7` - Library documentation lookups

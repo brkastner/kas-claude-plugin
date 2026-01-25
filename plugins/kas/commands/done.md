@@ -62,18 +62,12 @@ git status
 ```
 Must show branch is up to date with origin.
 
-### 7. Verify Daemon Running
-```bash
-bd daemon --status || echo "Warning: daemon not running, beads may not have synced"
-```
-
-### 8. Show Summary
+### 7. Show Summary
 
 Provide:
 - **Completed**: What was done this session
 - **Quality gates**: Status (passed/skipped/N/A)
 - **Git state**: Confirmation all changes pushed
-- **Remaining work**: Output of `bd ready`
 - **Next session prompt**: Recommended command to continue work
 
 ## Rules
@@ -82,8 +76,3 @@ Provide:
 - NEVER stop before pushing - that leaves work stranded locally
 - If push fails, resolve and retry until it succeeds
 - Only run quality gates if code changes were made
-- Close any beads issues that were completed (daemon auto-syncs to `util/beads-sync`)
-
-## Beads Sync
-
-Beads data syncs automatically via daemon to `util/beads-sync` branch. No manual `bd sync` needed unless you need immediate sync before a merge operation.

@@ -100,9 +100,6 @@ Review implementation plans for security gaps, design flaws, missing tests, and 
 
 ### Recommendation
 [Clear next steps: approve, revise specific sections, or block until resolved]
-
-### Next Step
-**→ Run task-splitter agent to prepare beads issues before ExitPlanMode**
 ```
 
 ## Review Checklist
@@ -138,8 +135,4 @@ When reviewing a plan, verify:
 
 ## After Review Completes
 
-**IMPORTANT:** After this review completes, the assistant MUST run the **task-splitter** agent to prepare beads issues BEFORE calling ExitPlanMode. The sequence is:
-
-1. ✅ plan-reviewer (this agent) - review complete
-2. ⏳ **task-splitter** - prepare bd create commands (RUN THIS NEXT)
-3. ⏳ ExitPlanMode - show plan + prepared commands to user
+After this review completes, the assistant should call ExitPlanMode to present the plan and findings to the user for approval.

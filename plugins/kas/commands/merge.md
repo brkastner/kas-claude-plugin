@@ -77,7 +77,6 @@ Provide summary:
 - ALWAYS use `--merge` flag (preserve branch history)
 - ALWAYS delete remote branch after merge (`--delete-branch`)
 - If in worktree, MUST clean it up after merge
-- Beads commits go to `util/beads-sync` branch (not feature branches), so no squashing needed
 
 ## Error Handling
 
